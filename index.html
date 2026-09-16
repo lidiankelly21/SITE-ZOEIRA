@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>COISAS DE YAG</title>
+<style>
+  /* ======================================================
+     VARIÁVEIS DE COR — edite aqui para mudar o visual todo
+     ====================================================== */
+  :root {
+    --bg1: #0f172a;
+    --bg2: #111827;
+    --card-bg: rgba(30, 41, 59, 0.92);
+    --text: #f1f5f9;
+    --sub: #94a3b8;
+    --accent: #6366f1;
+    --accent-hover: #818cf8;
+    --option-bg: #1e293b;
+    --option-border: #334155;
+    --option-selected: #6366f1;
+    --shadow: 0 10px 35px rgba(0, 0, 0, 0.45);
+}
+
+  
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg1:#161a2b;
+      --bg2:#1c2436;
+      --card-bg:rgba(24,28,44,0.85);
+      --text:#e8ebf5;
+      --sub:#a8b0c8;
+      --accent:#6d78ec;
+      --accent-hover:#8791f2;
+      --option-bg:#232841;
+      --option-border:#333a58;
+      --option-selected:#6d78ec;
+      --shadow: 0 10px 35px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg1:#161a2b;
+    --bg2:#1c2436;
+    --card-bg:rgba(24,28,44,0.85);
+    --text:#e8ebf5;
+    --sub:#a8b0c8;
+    --accent:#6d78ec;
+    --accent-hover:#8791f2;
+    --option-bg:#232841;
+    --option-border:#333a58;
+    --option-selected:#6d78ec;
+    --shadow: 0 10px 35px rgba(0,0,0,0.5);
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 15%, var(--bg1), transparent 55%),
+      radial-gradient(circle at 85% 85%, var(--bg2), transparent 55%),
+      linear-gradient(135deg, var(--bg1), var(--bg2));
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text);
+    padding: 1.2rem;
+  }
+
+  .app{
+    width:100%;
+    max-width: 520px;
+  }
+
+  /* -------- Barra de progresso (bolinhas) -------- */
+  .progress{
+    display:flex;
+    gap:.4rem;
+    justify-content:center;
+    margin-bottom: 1rem;
+  }
+  .dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background: var(--option-border);
+    transition: all .25s ease;
+  }
+  .dot.active{
+    background: var(--accent);
+    width:22px;
+    border-radius:5px;
+  }
+  .dot.done{
+    background: var(--accent);
+    opacity:.5;
+  }
+
+  /* -------- Card da pergunta -------- */
+  .quiz-card{
+    background:var(--card-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 24px;
+    padding: clamp(1.5rem, 5vw, 2.4rem);
+    box-shadow: var(--shadow);
+    animation: fadeIn .35s ease;
+  }
+  @keyframes fadeIn{
+    from{ opacity:0; transform: translateY(8px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .q-counter{
+    font-size:.8rem;
+    color:var(--sub);
+    margin:0 0 .4rem;
+    font-weight:600;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+  }
+
+  #qText{
+    font-size: clamp(1.2rem, 5vw, 1.6rem);
+    margin: 0 0 1.4rem;
+    line-height:1.35;
+  }
+
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:.7rem;
+  }
+
+  .option-btn{
+    width:100%;
+    text-align:left;
+    padding: .9rem 1.1rem;
+    border-radius: 14px;
+    border: 2px solid var(--option-border);
+    background: var(--option-bg);
+    color: var(--text);
+    font-size: clamp(.95rem, 3vw, 1.05rem);
+    font-family: inherit;
+    cursor:pointer;
+    transition: transform .15s ease, border-color .2s ease, background .2s ease;
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+  }
+  .option-btn .emoji{
+    font-size:1.3rem;
+  }
+  .option-btn:hover{
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .option-btn:active{
+    transform: translateY(0) scale(.98);
+  }
+  .option-btn.selected{
+    border-color: var(--option-selected);
+    background: var(--option-selected);
+    color:#fff;
+  }
+
+  /* -------- Tela de revelação (imagem) -------- */
+  .reveal{
+    background:var(--card-bg);
+    backdrop-filter: blur(14px);
+    border-radius: 24px;
+    padding: clamp(1.5rem, 5vw, 2.4rem);
+    box-shadow: var(--shadow);
+    text-align:center;
+    animation: pop .4s cubic-bezier(.26,1.4,.44,1);
+  }
+  @keyframes pop{
+    0%{ transform: scale(.85); opacity:0; }
+    100%{ transform: scale(1); opacity:1; }
+  }
+
+  .reveal img{
+    width:100%;
+    max-height: 260px;
+    object-fit:cover;
+    border-radius: 16px;
+    margin-bottom: 1rem;
+    display:block;
+  }
+
+  .reveal-caption{
+    font-size: clamp(1rem, 3.5vw, 1.15rem);
+    margin: 0 0 1.5rem;
+    color: var(--text);
+  }
+
+  .next-btn{
+    background: var(--accent);
+    color:#fff;
+    border:none;
+    border-radius: 999px;
+    padding: .85em 2em;
+    font-size: 1rem;
+    font-weight:700;
+    font-family: inherit;
+    cursor:pointer;
+    transition: background .2s ease, transform .15s ease;
+  }
+  .next-btn:hover{ background: var(--accent-hover); transform: scale(1.04); }
+  .next-btn:active{ transform: scale(.97); }
+
+  /* -------- Tela final -------- */
+  .final{
+    background:var(--card-bg);
+    backdrop-filter: blur(14px);
+    border-radius: 24px;
+    padding: clamp(2rem, 6vw, 3rem);
+    box-shadow: var(--shadow);
+    text-align:center;
+    animation: pop .4s cubic-bezier(.26,1.4,.44,1);
+  }
+  .final .big-emoji{
+    font-size: clamp(2.5rem, 10vw, 3.5rem);
+    margin-bottom: .6rem;
+  }
+  .final h2{
+    margin: 0 0 .5rem;
+    font-size: clamp(1.4rem, 5vw, 1.8rem);
+  }
+  .final p{
+    color: var(--sub);
+    margin: 0 0 1.6rem;
+  }
+  .restart-btn{
+    background: var(--option-bg);
+    color: var(--text);
+    border: 2px solid var(--option-border);
+    border-radius: 999px;
+    padding: .8em 1.8em;
+    font-size: .95rem;
+    font-weight:600;
+    font-family: inherit;
+    cursor:pointer;
+    transition: border-color .2s ease;
+  }
+  .restart-btn:hover{ border-color: var(--accent); }
+
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="progress" id="progressDots"></div>
+
+  <div class="quiz-card" id="quizCard">
+    <p class="q-counter" id="qCounter"></p>
+    <h2 id="qText"></h2>
+    <div class="options" id="optionsWrap"></div>
+  </div>
+
+  <div class="reveal hidden" id="revealWrap">
+    <img id="revealImg" src="" alt="Imagem da resposta">
+    <p class="reveal-caption" id="revealCaption"></p>
+    <button class="next-btn" id="nextBtn">Próxima pergunta →</button>
+  </div>
+
+  <div class="final hidden" id="finalWrap">
+    <div class="big-emoji">🎉</div>
+    <h2>JOGAAA ZÉ DO RÁIDO!</h2>
+    <p>Você respondeu todas as perguntas.</p>
+    <button class="restart-btn" id="restartBtn">Recomeçar</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   COMO EDITAR
+   =========================================================================
+   1. Edite o array QUESTIONS abaixo.
+   2. Cada pergunta tem:
+      - text: o texto da pergunta
+      - options: lista de respostas possíveis, cada uma com:
+          - label:   texto do botão (o que a pessoa clica)
+          - emoji:   emoji mostrado ao lado do texto do botão (opcional)
+          - image:   caminho/URL da imagem que aparece depois de responder
+                      -> troque pelo link da sua imagem (ex: "minha-foto.jpg"
+                         se estiver na mesma pasta, ou uma URL completa
+                         "https://...")
+          - caption: texto que acompanha a imagem revelada
+   3. Pode ter quantas perguntas e opções quiser.
+   ========================================================================= */
+
+const QUESTIONS = [
+  {
+    text: "Qual rolê vc prefere? Pro proximoooo!!",
+    options: [
+      {
+        label: "CINEMINHA",
+        
+        image: "https://i.pinimg.com/736x/7a/8b/96/7a8b966c8ac4d269314f68de64675d3f.jpg",
+        caption: "Ainnn papaiii, goxtoooo"
+      },
+      {
+        label: "F1 na paz de Jah",
+        
+        image: "https://i.pinimg.com/1200x/94/41/b6/9441b6171ff91f0c4725bfae0971c58a.jpg",
+        caption: "AGRADICIDAAAAA"
+      },
+
+     {
+        label: "COMER UM PODRÃO",
+        
+        image: "https://i.pinimg.com/736x/92/66/ee/9266eeb199955731e85e4e5ae7636206.jpg",
+        caption: "VAMUUUU"
+      }
+    ]
+  },
+  {
+    text: "VAMOS DAR UNS PEGA?",
+    options: [
+      {
+        label: "SIMM",
+        
+        image: "https://i.pinimg.com/736x/d7/0e/53/d70e53f816b05eb8aa6b35751866f348.jpg",
+        caption: "BOM MESMO"
+      },
+      {
+        label: "SEMPRE",
+        
+        image: "https://i.pinimg.com/736x/00/1e/37/001e37ddbc07ea12635757891de58426.jpg",
+        caption: "OBVIO"
+      },
+      {
+        label: "TEM OUTRA OPÇÃO?",
+        
+        image: "https://i.pinimg.com/736x/5c/e8/9c/5ce89c110b90687a65df2d019eccebbf.jpg",
+        caption: "NÃO"
+      }
+    ]
+  },
+  {
+    text: "VAI ME LEVAR NUM FORRÓ? OU UM BAILÃO MESMO!!!",
+    options: [
+      {
+        label: "OUSH SÓ BORA",
+        
+        image: "https://i.pinimg.com/736x/d2/02/2e/d2022e8f38055c534f389061aea728e9.jpg",
+        caption: "VAMOS BAILAR"
+      },
+      {
+        label: "JAMAIXXX",
+        
+        image: "https://i.pinimg.com/736x/7f/4d/d6/7f4dd6da47a81c352dc77845d757ec84.jpg",
+        caption: "PORRAN"
+      }
+    ]
+  }
+];
+
+/* ===================== LÓGICA — normalmente não precisa mexer ===================== */
+
+let current = 0;
+const answers = [];
+
+const qCounter = document.getElementById('qCounter');
+const qText = document.getElementById('qText');
+const optionsWrap = document.getElementById('optionsWrap');
+const progressDots = document.getElementById('progressDots');
+
+const quizCard = document.getElementById('quizCard');
+const revealWrap = document.getElementById('revealWrap');
+const revealImg = document.getElementById('revealImg');
+const revealCaption = document.getElementById('revealCaption');
+const nextBtn = document.getElementById('nextBtn');
+
+const finalWrap = document.getElementById('finalWrap');
+const restartBtn = document.getElementById('restartBtn');
+
+function renderDots(){
+  progressDots.innerHTML = '';
+  QUESTIONS.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === current ? ' active' : (i < current ? ' done' : ''));
+    progressDots.appendChild(dot);
+  });
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  qCounter.textContent = 'Pergunta ' + (current + 1) + ' de ' + QUESTIONS.length;
+  qText.textContent = q.text;
+  optionsWrap.innerHTML = '';
+
+  q.options.forEach((opt) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = (opt.emoji ? '<span class="emoji">' + opt.emoji + '</span>' : '') +
+                     '<span>' + opt.label + '</span>';
+    btn.addEventListener('click', () => selectOption(opt, btn));
+    optionsWrap.appendChild(btn);
+  });
+
+  renderDots();
+  quizCard.classList.remove('hidden');
+  revealWrap.classList.add('hidden');
+  finalWrap.classList.add('hidden');
+}
+
+function selectOption(opt, btnEl){
+  // marca visualmente a opção escolhida
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btnEl.classList.add('selected');
+
+  answers.push({ question: QUESTIONS[current].text, chosen: opt.label });
+
+  setTimeout(() => {
+    quizCard.classList.add('hidden');
+    revealImg.src = opt.image;
+    revealImg.alt = opt.label;
+    revealCaption.textContent = opt.caption || '';
+    revealWrap.classList.remove('hidden');
+  }, 250);
+}
+
+nextBtn.addEventListener('click', () => {
+  current++;
+  if(current < QUESTIONS.length){
+    renderQuestion();
+  }else{
+    revealWrap.classList.add('hidden');
+    quizCard.classList.add('hidden');
+    finalWrap.classList.remove('hidden');
+    renderDots();
+  }
+});
+
+restartBtn.addEventListener('click', () => {
+  current = 0;
+  answers.length = 0;
+  renderQuestion();
+});
+
+renderQuestion();
+</script>
+
+</body>
+</html>
